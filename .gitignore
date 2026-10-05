@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+
+# Secrets and personal financial data - never commit
+.env
+*.env
+data/
+*.db
+*.db-*
+*.sqlite
+*.salt
+*.csv
+*.xlsx
+*.xls
+!tests/fixtures/*.csv
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Addie – ניהול כספים</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <section id="auth-view" class="auth hidden">
+    <div class="card auth-card">
+      <h1>Addie</h1>
+      <p id="auth-intro" class="muted"></p>
+      <form id="auth-form">
+        <input id="auth-password" type="password" autocomplete="current-password" placeholder="סיסמת מאסטר" required>
+        <input id="auth-password2" type="password" autocomplete="new-password" placeholder="אימות סיסמה" class="hidden">
+        <button type="submit" id="auth-submit"></button>
+      </form>
+      <p id="auth-error" class="error"></p>
+      <p id="auth-warning" class="muted small hidden">
+        חשוב: אין דרך לשחזר סיסמה שנשכחה – הנתונים מוצפנים בעזרתה. שמרי אותה במנהל סיסמאות.
+      </p>
+    </div>
+  </section>
+
+  <section id="app-view" class="hidden">
+    <header class="topbar">
+      <strong class="logo">Addie</strong>
+      <nav id="tabs">
+        <button data-tab="dashboard" class="active">לוח בקרה</button>
+        <button data-tab="transactions">תנועות</button>
+        <button data-tab="budget">תקציב</button>
+        <button data-tab="goals">חיסכון והשקעות</button>
+        <button data-tab="import">ייבוא</button>
+        <button data-tab="settings">הגדרות</button>
+      </nav>
+      <div class="topbar-end">
+        <input type="month" id="month">
+        <button id="lock-btn" class="secondary" title="נעילה">🔒 נעילה</button>
+      </div>
+    </header>
+
+    <main>
+      <!-- Dashboard -->
+      <div id="tab-dashboard" class="tab">
+        <div class="stats">
+          <div class="card stat"><span class="muted">הכנסות</span><b id="s-income"></b></div>
+          <div class="card stat"><span class="muted">הוצאות</span><b id="s-expenses"></b></div>
+          <div class="card stat"><span class="muted">הועבר לחיסכון</span><b id="s-savings"></b></div>
+          <div class="card stat"><span class="muted">שיעור חיסכון</span><b id="s-rate"></b><span class="muted small">החלק מההכנסה שלא הוצא</span></div>
+        </div>
+        <p id="s-uncat" class="notice hidden"></p>
+        <div class="grid2">
+          <div class="card"><h3>הוצאות לפי קטגוריה מול תקציב</h3><div id="cat-bars"></div></div>
+          <div class="card"><h3>6 חודשים אחרונים</h3><div id="trend"></div>
+            <div class="legend"><span class="sw income"></span>הכנסות <span class="sw expenses"></span>הוצאות <span class="sw savings"></span>חיסכון</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Transactions -->
+      <div id="tab-transactions" class="tab hidden">
+        <div class="card">
+          <div class="toolbar">
+            <input id="tx-search" placeholder="חיפוש בית עסק">
+            <select id="tx-filter"></select>
+          </div>
+          <table class="tx-table">
+            <thead><tr><th>תאריך</th><th>תיאור</th><th>חשבון</th><th>סכום</th><th>קטגוריה</th></tr></thead>
+            <tbody id="tx-body"></tbody>
+          </table>
+          <p id="tx-empty" class="muted hidden">אין תנועות לחודש הזה. אפשר לייבא קובץ בלשונית "ייבוא".</p>
+        </div>
+      </div>
+
+      <!-- Budget -->
+      <div id="tab-budget" class="tab hidden">
+        <div class="card">
+          <h3>תקציב חודשי לפי קטגוריה</h3>
+          <p class="muted small">השאירי ריק לקטגוריה בלי תקציב. הסכומים בשקלים.</p>
+          <table class="budget-table"><thead><tr><th>קטגוריה</th><th>תקציב חודשי (₪)</th><th>הוצא החודש</th><th></th></tr></thead>
+            <tbody id="budget-body"></tbody></table>
+        </div>
+      </div>
+
+      <!-- Goals -->
+      <div id="tab-goals" class="tab hidden">
+        <div id="goals-list" class="goals"></div>
+        <div class="card">
+          <h3>יעד חיסכון חדש</h3>
+          <form id="goal-form" class="form-grid">
+            <label>שם היעד<input name="name" required placeholder="קרן חירום / תיק השקעות"></label>
+            <label>סכום יעד (₪)<input name="target_amount" type="number" min="1" step="any" required></label>
+            <label>נחסך עד עכשיו (₪)<input name="current_amount" type="number" min="0" step="any" value="0"></label>
+            <label>הפקדה חודשית (₪)<input name="monthly_contribution" type="number" min="0" step="any" value="0"></label>
+            <label>תאריך יעד<input name="target_date" type="date"></label>
+            <button type="submit">הוספה</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Import -->
+      <div id="tab-import" class="tab hidden">
+        <div class="card">
+          <h3>ייבוא תנועות מקובץ</h3>
+          <p class="muted small">הורידי מאתר הבנק או חברת האשראי קובץ Excel או CSV של התנועות, ובחרי אותו כאן. קבצים שכבר יובאו לא ייכנסו פעמיים.</p>
+          <form id="import-form" class="form-grid">
+            <label>חשבון<select id="import-account" required></select></label>
+            <label>קובץ<input id="import-file" type="file" accept=".csv,.xlsx" required></label>
+          </form>
+          <div id="import-preview" class="hidden">
+            <h4>התאמת עמודות</h4>
+            <div id="mapping" class="form-grid"></div>
+            <label class="inline"><input type="checkbox" id="map-invert"> סכומים חיוביים בקובץ הם חיובים (רגיל בקבצי כרטיס אשראי)</label>
+            <div class="scroll"><table id="preview-table"></table></div>
+            <button id="import-go">ייבוא</button>
+          </div>
+          <p id="import-result" class="notice hidden"></p>
+        </div>
+      </div>
+
+      <!-- Settings -->
+      <div id="tab-settings" class="tab hidden">
+        <div class="grid2">
+          <div class="card">
+            <h3>חשבונות</h3>
+            <ul id="accounts-list" class="plain"></ul>
+            <form id="account-form" class="form-grid">
+              <label>שם<input name="name" required placeholder="עו״ש לאומי"></label>
+              <label>סוג<select name="type">
+                <option value="CHECKING">עו״ש</option><option value="CARD">כרטיס אשראי</option>
+                <option value="SAVINGS">חיסכון</option><option value="SECURITY">השקעות</option><option value="LOAN">הלוואה</option>
+              </select></label>
+              <label>מוסד<input name="institution" placeholder="בנק / חברת אשראי"></label>
+              <button type="submit">הוספת חשבון</button>
+            </form>
+          </div>
+          <div class="card">
+            <h3>חוקי סיווג אוטומטי</h3>
+            <p class="muted small">אם תיאור התנועה מכיל את הטקסט – היא תסווג לקטגוריה.</p>
+            <form id="rule-form" class="form-grid">
+              <label>טקסט<input name="pattern" required minlength="2"></label>
+              <label>קטגוריה<select name="category_id" id="rule-category"></select></label>
+              <button type="submit">הוספה</button>
+            </form>
+            <ul id="rules-list" class="plain rules"></ul>
+          </div>
+        </div>
+      </div>
+    </main>
+  </section>
+</body>
+</html>
